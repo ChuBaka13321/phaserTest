@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.0.3/phaser.min.js"></script>
+    <script src="https://dl.dropboxusercontent.com/u/728316/phaser.min.js"></script>
+    <script src="https://rawgit.com/photonstorm/phaser/master/build/phaser.min.js"></script>
+  </head>
+  <body>
+    <h1>{{ title }}</h1>
+    <p>Welcome to {{ title }}</p>
+    <div id="game_div"></div>
+    <script>
+var game = new Phaser.Game(800, 800, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+
+function preload() {
+
+    game.load.image('space', 'http://wallpoper.com/images/00/31/33/51/black-background_00313351.jpg');
+    game.load.image('bullet', 'http://img2.wikia.nocookie.net/__cb20121009064131/pockiepirate/images/9/99/Basic_Energy_Ball.png');
+    game.load.image('ship', 'http://www.pixeljoint.com/files/icons/ship2_transparent_shading2.png');
+
+}
+
+var sprite;
+var cursors;
+
+var bullet;
+var bullets;
+var bulletTime = 0;
+var particles;
+var textureRegistry = {};
+
+function create() {
+
+    //  This will run in Canvas mode, so let's gain a little speed and display
+    game.renderer.clearBeforeRender = false;
+    game.renderer.roundPixels = true;
+
+    //  We need arcade physics
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    //  A spacey background
+    game.add.tileSprite(0, 0, game.width, game.height, 'space');
+
+    //  Our ships bullets
+    bullets = game.add.group();
+    bullets.enableBody = true;
+    bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+    //  All 40 of them
+    bullets.createMultiple(40, 'bullet');
+    bullets.setAll('anchor.x', -0.3);
+    bullets.setAll('anchor.y', 0.2);
+
+    //  Our player ship
+    sprite = game.add.sprite(400, 750, 'ship');
+    sprite.anchor.set(0.5);
+
+    // sprite.body.set('body.collideWorldBounds', true);
+
+    //  and its physics settings
+    game.physics.enable(sprite, Phaser.Physics.ARCADE);
+
+    sprite.body.drag.set(100);
+    sprite.body.maxVelocity.set(500);
+
+    //  Game input
+    cursors = game.input.keyboard.createCursorKeys();
+    game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+
+    // Particles Testing!
+    // particles = game.add.group();
+    // particles.physicsBodyType = Phaser.Physics.ARCADE;
+    // particles.enableBody = true;for(var i = 0; i < 300; i++) {
+    // particles.add(game.add.sprite(game.world.randomX, game.world.randomY, createBlock(4,'green')));
+    // }
+  
+    // particles.setAll('body.mass', 0.5);
+    // particles.setAll('body.collideWorldBounds', true);
+    // particles.setAll('body.bounce', new Phaser.Point(0.5,0.5));
+    }
+
+function update() {
+        sprite.body.velocity.setTo(0, 0);
+
+        if (cursors.left.isDown)
+        {
+            sprite.body.velocity.x = -400;
+        }
+        else if (cursors.right.isDown)
+        {
+            sprite.body.velocity.x = 400;
+        }
+        sprite.body.collideWorldBounds = true;
+
+    // if (cursors.up.isDown)
+    // {
+    //     game.physics.arcade.accelerationFromRotation(sprite.rotation, 200, sprite.body.acceleration);
+    // }
+    // else
+    // {
+    //     sprite.body.acceleration.set(0);
+    // }
+
+    // if (cursors.left.isDown)
+    // {
+    //     sprite.body.angularVelocity = -300;
+    // }
+    // else if (cursors.right.isDown)
+    // {
+    //     sprite.body.angularVelocity = 300;
+    // }
+    // else
+    // {
+    //     sprite.body.angularVelocity = 0;
+    // }
+
+    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+    {
+        fireBullet();
+    }
+
+    // screenWrap(sprite);
+
+    bullets.forEachExists(screenWrap, this);
+    // game.physics.arcade.collide(sprite, particles);
+    // game.physics.arcade.collide(particles);
+    game.physics.arcade.collide(sprite);
+
+}
+
+function fireBullet () {
+
+    if (game.time.now > bulletTime)
+    {
+        bullet = bullets.getFirstExists(false);
+
+        if (bullet)
+        {
+            bullet.reset(sprite.body.x + 16, sprite.body.y + 16);
+            bullet.lifespan = 1400;
+            // bullet.rotation = sprite.rotation;
+            bullet.body.velocity.y = -500;
+            // game.physics.arcade.velocityFromRotation(sprite.rotation, 400, bullet.body.velocity);
+            bulletTime = game.time.now + 150;
+        }
+    }
+
+}
+function createBlock(size, color) {
+  var name = size + '_' + color;
+  if(textureRegistry[name]) {
+    return textureRegistry[name];
+  }
+  
+  var bmd = game.add.bitmapData(size, size);
+  bmd.ctx.fillStyle = color;
+  bmd.ctx.fillRect(0,0, size, size);
+  textureRegistry[name] = bmd;
+  return bmd;
+}
+
+function screenWrap (sprite) {
+
+    if (sprite.x < 0)
+    {
+        sprite.x = game.width;
+    }
+    else if (sprite.x > game.width)
+    {
+        sprite.x = 0;
+    }
+
+    if (sprite.y < 0)
+    {
+        sprite.y = game.height;
+    }
+    else if (sprite.y > game.height)
+    {
+        sprite.y = 0;
+    }
+
+}
+
+function render() {
+}
+</script>
+  </body>
+</html>
